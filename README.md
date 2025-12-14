@@ -1,0 +1,1 @@
+First person action role playing game in Unreal Engine 5.5. Inspired by The Elder Scrolls IV: Oblivion and The Elder Scrolls V: Skyrim. Learning Unreal for the first time, and this is my first project.
