@@ -5,83 +5,64 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GameplayTagContainer.h"
-
+#include "QuestObjective.h"
+#include "QuestDataAsset.h"
+#include "QuestRuntimeData.h"
 #include "QuestSubsystem.generated.h"
 
+// Delegates
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnQuestStarted, FGameplayTag, QuestID, const FQuestRuntimeData&, QuestData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnQuestUpdated, FGameplayTag, QuestID, const FQuestRuntimeData&, QuestData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnQuestCompleted, FGameplayTag, QuestID, const FQuestRuntimeData&, QuestData);
+
 class UQuestDataAsset;
-
-/**
- * 
- */
-USTRUCT(BlueprintType)
-struct FQuestRuntimeData
-{
-    GENERATED_BODY()
-
-    UPROPERTY(BlueprintReadOnly)
-    TObjectPtr<UQuestDataAsset> QuestAsset = nullptr;
-
-    UPROPERTY(BlueprintReadOnly)
-    int32 CurrentObjectiveIndex = 0;
-};
-
-// Quest lifecycle delegates
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
-    FOnQuestStarted,
-    FGameplayTag, QuestID,
-    const FQuestRuntimeData&, QuestData
-);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
-    FOnQuestUpdated,
-    FGameplayTag, QuestID,
-    const FQuestRuntimeData&, QuestData
-);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
-    FOnQuestCompleted,
-    FGameplayTag, QuestID
-);
-
-
 
 UCLASS()
 class MYPROJECT_API UQuestSubsystem : public UGameInstanceSubsystem
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-    UFUNCTION(BlueprintCallable, Category = "Quest")
-    bool StartQuest(UQuestDataAsset* QuestAsset, FGameplayTag QuestID);
+    virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-    UFUNCTION(BlueprintCallable, Category = "Quest")
-    bool AdvanceObjective(FGameplayTag QuestID);
-
-    UFUNCTION(BlueprintCallable, Category = "Quest")
-    void NotifyEvent(FGameplayTag EventTag, AActor* InstigatorActor);
-
-    UFUNCTION(BlueprintPure, Category = "Quest")
-    bool IsQuestActive(FGameplayTag QuestID) const;
-
-    UPROPERTY(BlueprintAssignable, Category = "Quest")
+    // Delegates
+    UPROPERTY(BlueprintAssignable)
     FOnQuestStarted OnQuestStarted;
 
-    UPROPERTY(BlueprintAssignable, Category = "Quest")
+    UPROPERTY(BlueprintAssignable)
     FOnQuestUpdated OnQuestUpdated;
 
-    UPROPERTY(BlueprintAssignable, Category = "Quest")
+    UPROPERTY(BlueprintAssignable)
     FOnQuestCompleted OnQuestCompleted;
 
+    // Core API
+    UFUNCTION(BlueprintCallable)
+    void NotifyEvent(FGameplayTag EventTag);
 
+    // Queries (UI-safe)
+    UFUNCTION(BlueprintPure)
+    bool GetActiveQuest(
+        FGameplayTag& OutQuestID,
+        FQuestRuntimeData& OutData
+    ) const;
 
-private:
-    // Active quests currently in progress
+    UFUNCTION(BlueprintPure)
+    bool GetCurrentObjective(
+        FQuestObjective& OutObjective
+    ) const;
+
+protected:
+    // All quests that the subsystem knows about
+    UPROPERTY()
+    TArray<UQuestDataAsset*> AllQuests;
+
     UPROPERTY()
     TMap<FGameplayTag, FQuestRuntimeData> ActiveQuests;
 
-    // Completed quests
     UPROPERTY()
     TSet<FGameplayTag> CompletedQuests;
-};
 
+private:
+    UFUNCTION(BlueprintCallable)
+    bool StartQuest(UQuestDataAsset* QuestAsset);
+};

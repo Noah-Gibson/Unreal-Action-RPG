@@ -1,17 +1,29 @@
 #include "MyGameInstance.h"
 #include "QuestSubsystem.h"
-#include "QuestData.h"
+#include "QuestDataAsset.h"
+#include "Engine/StreamableManager.h"
+#include "Engine/AssetManager.h"
 
 void UMyGameInstance::Init()
 {
     Super::Init();
 
-    // Here is where you access your QuestSubsystem
+    // Get your QuestSubsystem
     if (UQuestSubsystem* QuestSubsystem = GetSubsystem<UQuestSubsystem>())
     {
-        // Example: manually assign quest assets
-        QuestSubsystem->AllQuests = {
-            LoadObject<UQuestData>(nullptr, TEXT("/Game/Quest/Quests/DA_Test_Quest_KillBandit")),
-        };
+        // Load a quest asset from the Content Browser
+        // FStringAssetReference QuestAssetRef(TEXT("/Game/Quest/Quests/DA_Test_Quest_KillBandit.DA_Test_Quest_KillBandit"));
+
+        //TSoftObjectPtr<UQuestDataAsset> QuestAssetRef(
+        //    FSoftObjectPath(TEXT("/Game/Quest/Quests/DA_Test_KillBandit.DA_Test_KillBandit"))
+        //);
+
+        //UQuestDataAsset* QuestAsset = QuestAssetRef.LoadSynchronous();
+
+        //if (QuestAsset)
+        //{
+        //    // Start the quest immediately (adds it to ActiveQuests)
+        //    // QuestSubsystem->StartQuest(QuestAsset);
+        //}
     }
 }
