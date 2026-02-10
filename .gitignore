@@ -44,6 +44,7 @@ Intermediate/*
 Plugins/**/Intermediate/*
 DerivedDataCache/*
 Saved/*
+Platforms/HoloLens/Config/*
 
 # -------------------------------
 # Asset / Content Ignore
