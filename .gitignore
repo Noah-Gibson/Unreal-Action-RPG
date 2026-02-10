@@ -49,38 +49,20 @@ Platforms/HoloLens/Config/*
 # -------------------------------
 # Asset / Content Ignore
 # -------------------------------
-# Ignore all marketplace / external content
-Content/BlackAlder/*
-Content/CastleAssets/*
-Content/CastleTown/*
-Content/Collections/*
-Content/Developers/*
-Content/Fab/*
-Content/Gladiator_Arena/*
-Content/GothicCathedral/*
-Content/HM_MedievalTown/*
-Content/HouseForge_01/*
-Content/LevelPrototyping/*
-Content/MedCastle/*
-Content/Medieval_Megapack/*
-Content/Megascans/*
-Content/MSPresets/*
-Content/PN_interactiveSpruceForest/*
-Content/RealisticSwordSoundEffects/*
-Content/StarterContent/*
-Content/ThwackSounds/*
-Content/Viking_Village/*
-Content/War_Camp/*
-Content/Weapon_Pack/*
-Content/X_Bot/*
+# Ignore everything in Content by default
+Content/*
 
-# Ignore all external actors except FirstPerson and Maps
+# Track MyGame
+!Content/MyGame/
+
+# Ignore all of __ExternalActors__ except MyGame
 Content/__ExternalActors__/*
-!Content/__ExternalActors__/FirstPerson/**
-!Content/__ExternalActors__/Maps/**
-Content/__ExternalObjects__/*
-!Content/__ExternalObjects__/FirstPerson/**
-!Content/__ExternalObjects__/Maps/**
+!Content/__ExternalActors__/MyGame/
 
-# Make sure Source folder is NOT ignored
+# Ignore all of __ExternalObjects__ except MyGame
+Content/__ExternalObjects__/*
+!Content/__ExternalObjects__/MyGame
+
+# Make sure Source folder is tracked
 !Source/**
+

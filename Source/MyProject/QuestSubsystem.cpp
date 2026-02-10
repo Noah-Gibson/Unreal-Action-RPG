@@ -16,7 +16,7 @@ void UQuestSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     AllQuests.Empty();
 
     // Load all quests from a specific folder
-    FString AssetPath = TEXT("/Game/Quest/Quests");
+    FString AssetPath = TEXT("/Game/MyGame/Quest/Quests");
 
     // Get all assets in that folder
     TArray<FAssetData> AssetList;
