@@ -55,13 +55,11 @@ Content/CastleTown/*
 Content/Collections/*
 Content/Developers/*
 Content/Fab/*
-Content/FX/*
 Content/Gladiator_Arena/*
 Content/GothicCathedral/*
 Content/HM_MedievalTown/*
 Content/HouseForge_01/*
 Content/LevelPrototyping/*
-Content/Materials/*
 Content/MedCastle/*
 Content/Medieval_Megapack/*
 Content/Megascans/*
@@ -74,7 +72,6 @@ Content/Viking_Village/*
 Content/War_Camp/*
 Content/Weapon_Pack/*
 Content/X_Bot/*
-Content/Audio/*
 
 # Ignore all external actors
 Content/__ExternalActors__/*
