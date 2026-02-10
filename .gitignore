@@ -73,13 +73,11 @@ Content/War_Camp/*
 Content/Weapon_Pack/*
 Content/X_Bot/*
 
-# Ignore all external actors
+# Ignore all external actors except FirstPerson and Maps
 Content/__ExternalActors__/*
-Content/__ExternalObjects__/*
-
-# Except FirstPerson and Maps
 !Content/__ExternalActors__/FirstPerson/**
 !Content/__ExternalActors__/Maps/**
+Content/__ExternalObjects__/*
 !Content/__ExternalObjects__/FirstPerson/**
 !Content/__ExternalObjects__/Maps/**
 
