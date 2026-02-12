@@ -3,3 +3,8 @@
 
 #include "QuestDataAsset.h"
 
+/*
+
+This should NOT store any runtime state.
+
+*/

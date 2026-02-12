@@ -51,6 +51,15 @@ public:
         FQuestObjective& OutObjective
     ) const;
 
+    UFUNCTION(BlueprintCallable)
+    bool IsQuestActive(FGameplayTag QuestID) const;
+
+    UFUNCTION(BlueprintCallable)
+    bool IsQuestNotStarted(FGameplayTag QuestID) const;
+
+    UFUNCTION(BlueprintCallable)
+    bool IsQuestCompleted(FGameplayTag QuestID) const;
+
 protected:
     // All quests that the subsystem knows about
     UPROPERTY()

@@ -152,8 +152,6 @@ void UQuestSubsystem::NotifyEvent(FGameplayTag EventTag)
     }
 }
 
-
-
 // Get the current active quest (assuming only one active quest)
 bool UQuestSubsystem::GetActiveQuest(FGameplayTag& OutQuestID, FQuestRuntimeData& OutQuestData) const
 {
@@ -166,4 +164,20 @@ bool UQuestSubsystem::GetActiveQuest(FGameplayTag& OutQuestID, FQuestRuntimeData
     OutQuestID = Pair.Key;
     OutQuestData = Pair.Value;
     return true;
+}
+
+bool UQuestSubsystem::IsQuestActive(FGameplayTag QuestID) const
+{
+    return ActiveQuests.Contains(QuestID);
+}
+
+bool UQuestSubsystem::IsQuestCompleted(FGameplayTag QuestID) const
+{
+    return CompletedQuests.Contains(QuestID);
+}
+
+bool UQuestSubsystem::IsQuestNotStarted(FGameplayTag QuestID) const
+{
+    return !ActiveQuests.Contains(QuestID) &&
+        !CompletedQuests.Contains(QuestID);
 }
