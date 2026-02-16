@@ -4,6 +4,16 @@
 #include "QuestDataAsset.h"
 #include "QuestRuntimeData.generated.h"
 
+
+UENUM(BlueprintType)
+enum class EQuestState : uint8
+{
+    NotStarted,
+    Active,
+    Completed,
+    Failed
+};
+
 USTRUCT(BlueprintType)
 struct FQuestRuntimeData
 {
@@ -14,4 +24,7 @@ struct FQuestRuntimeData
 
     UPROPERTY(BlueprintReadOnly)
     int32 CurrentObjectiveIndex = 0;
+
+    UPROPERTY(BlueprintReadOnly)
+    EQuestState QuestState = EQuestState::NotStarted;
 };

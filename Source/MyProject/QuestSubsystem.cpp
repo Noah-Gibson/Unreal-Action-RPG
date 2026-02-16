@@ -11,8 +11,7 @@ void UQuestSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     Super::Initialize(Collection);
 
     // Clear previous states
-    ActiveQuests.Empty();
-    CompletedQuests.Empty();
+	QuestRuntimeMap.Empty();
     AllQuests.Empty();
 
     // Load all quests from a specific folder
@@ -54,16 +53,18 @@ bool UQuestSubsystem::StartQuest(UQuestDataAsset* QuestAsset)
         return false;
     }
 
-    if (ActiveQuests.Num() > 0)
+    for (const auto& Pair : QuestRuntimeMap)
     {
-        return false; // only allow one active quest
-    }
+        if (Pair.Value.QuestState == EQuestState::Active)
+        {
+            return false; // only allow one active quest for now
+        }
+	}
 
-    FQuestRuntimeData Data;
+	FQuestRuntimeData Data = QuestRuntimeMap.FindOrAdd(QuestAsset->QuestID);
     Data.QuestAsset = QuestAsset;
     Data.CurrentObjectiveIndex = 0;
-
-    ActiveQuests.Add(QuestAsset->QuestID, Data);
+	Data.QuestState = EQuestState::Active;
 
     OnQuestStarted.Broadcast(QuestAsset->QuestID, Data);
     return true;
@@ -72,22 +73,26 @@ bool UQuestSubsystem::StartQuest(UQuestDataAsset* QuestAsset)
 // Get the current active quest's objective
 bool UQuestSubsystem::GetCurrentObjective(FQuestObjective& OutObjective) const
 {
-    if (ActiveQuests.Num() == 0)
+    for (const auto& Pair : QuestRuntimeMap)
     {
-        return false;
+        const FQuestRuntimeData& Data = Pair.Value;
+
+        if (Data.QuestState == EQuestState::Active)
+        {
+            if (!Data.QuestAsset ||
+                !Data.QuestAsset->Objectives.IsValidIndex(Data.CurrentObjectiveIndex))
+            {
+                return false;
+            }
+
+            OutObjective = Data.QuestAsset->Objectives[Data.CurrentObjectiveIndex];
+            return true;
+        }
     }
 
-    const auto& Pair = *ActiveQuests.CreateConstIterator();
-    const FQuestRuntimeData& Data = Pair.Value;
-
-    if (!Data.QuestAsset || !Data.QuestAsset->Objectives.IsValidIndex(Data.CurrentObjectiveIndex))
-    {
-        return false;
-    }
-
-    OutObjective = Data.QuestAsset->Objectives[Data.CurrentObjectiveIndex];
-    return true;
+    return false; // no active quest found
 }
+
 
 // Notify subsystem of an event, potentially advancing the current objective
 void UQuestSubsystem::NotifyEvent(FGameplayTag EventTag)
@@ -108,33 +113,43 @@ void UQuestSubsystem::NotifyEvent(FGameplayTag EventTag)
         FGameplayTag QuestTag = QuestAsset->QuestID;
 
         // Skip if already active or completed
-        if (ActiveQuests.Contains(QuestTag) || CompletedQuests.Contains(QuestTag))
+        FQuestRuntimeData* ExistingData = QuestRuntimeMap.Find(QuestTag);
+
+        if (ExistingData &&
+            (ExistingData->QuestState == EQuestState::Active ||
+                ExistingData->QuestState == EQuestState::Completed))
+        {
             continue;
+        }
 
         // Check start tag
         if (QuestAsset->StartEventTag == EventTag)
         {
-            FQuestRuntimeData NewData;
+            FQuestRuntimeData& NewData = QuestRuntimeMap.FindOrAdd(QuestTag);
             NewData.QuestAsset = QuestAsset;
             NewData.CurrentObjectiveIndex = 0;
-            ActiveQuests.Add(QuestTag, NewData);
+            NewData.QuestState = EQuestState::Active;
             OnQuestStarted.Broadcast(QuestTag, NewData);
         }
     }
 
     // Update objectives for all active quests
-    TArray<FGameplayTag> ActiveKeys;
-    ActiveQuests.GetKeys(ActiveKeys);
-
-    for (const FGameplayTag& QuestTag : ActiveKeys)
+    for (auto& Pair : QuestRuntimeMap)
     {
-        FQuestRuntimeData& Data = ActiveQuests[QuestTag];
-        UQuestDataAsset* QuestAsset = Data.QuestAsset;
+        FGameplayTag QuestTag = Pair.Key;
+        FQuestRuntimeData& Data = Pair.Value;
 
-        if (!QuestAsset || !QuestAsset->Objectives.IsValidIndex(Data.CurrentObjectiveIndex))
+        if (Data.QuestState != EQuestState::Active)
             continue;
 
-        FQuestObjective& CurrentObjective = QuestAsset->Objectives[Data.CurrentObjectiveIndex];
+        UQuestDataAsset* QuestAsset = Data.QuestAsset;
+
+        if (!QuestAsset ||
+            !QuestAsset->Objectives.IsValidIndex(Data.CurrentObjectiveIndex))
+            continue;
+
+        FQuestObjective& CurrentObjective =
+            QuestAsset->Objectives[Data.CurrentObjectiveIndex];
 
         if (CurrentObjective.RequiredEventTag == EventTag)
         {
@@ -144,40 +159,55 @@ void UQuestSubsystem::NotifyEvent(FGameplayTag EventTag)
             // Complete quest if done
             if (Data.CurrentObjectiveIndex >= QuestAsset->Objectives.Num())
             {
-                ActiveQuests.Remove(QuestTag);
-                CompletedQuests.Add(QuestTag);
+                Data.QuestState = EQuestState::Completed;
                 OnQuestCompleted.Broadcast(QuestTag, Data);
             }
         }
     }
 }
 
+
 // Get the current active quest (assuming only one active quest)
 bool UQuestSubsystem::GetActiveQuest(FGameplayTag& OutQuestID, FQuestRuntimeData& OutQuestData) const
 {
-    if (ActiveQuests.Num() == 0)
+    for (const auto& Pair : QuestRuntimeMap)
     {
-        return false;
+        if (Pair.Value.QuestState == EQuestState::Active)
+        {
+            OutQuestID = Pair.Key;
+            OutQuestData = Pair.Value;
+            return true;
+        }
     }
 
-    const auto& Pair = *ActiveQuests.CreateConstIterator();
-    OutQuestID = Pair.Key;
-    OutQuestData = Pair.Value;
-    return true;
+    return false;
 }
 
 bool UQuestSubsystem::IsQuestActive(FGameplayTag QuestID) const
 {
-    return ActiveQuests.Contains(QuestID);
+    const FQuestRuntimeData* Data = QuestRuntimeMap.Find(QuestID);
+
+    return Data && Data->QuestState == EQuestState::Active;
 }
+
 
 bool UQuestSubsystem::IsQuestCompleted(FGameplayTag QuestID) const
 {
-    return CompletedQuests.Contains(QuestID);
+    const FQuestRuntimeData* Data = QuestRuntimeMap.Find(QuestID);
+
+    return Data && Data->QuestState == EQuestState::Completed;
 }
 
 bool UQuestSubsystem::IsQuestNotStarted(FGameplayTag QuestID) const
 {
-    return !ActiveQuests.Contains(QuestID) &&
-        !CompletedQuests.Contains(QuestID);
+    const FQuestRuntimeData* Data = QuestRuntimeMap.Find(QuestID);
+
+    // If it doesn't exist in the map OR explicitly marked NotStarted
+    return !Data || Data->QuestState == EQuestState::NotStarted;
+}
+
+FQuestRuntimeData UQuestSubsystem::GetQuestData(FGameplayTag QuestID) const
+{
+    const FQuestRuntimeData* Data = QuestRuntimeMap.Find(QuestID);
+    return Data ? *Data : FQuestRuntimeData{};
 }

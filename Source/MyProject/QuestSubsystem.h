@@ -60,16 +60,22 @@ public:
     UFUNCTION(BlueprintCallable)
     bool IsQuestCompleted(FGameplayTag QuestID) const;
 
+    UFUNCTION(BlueprintCallable, BlueprintPure)
+    FQuestRuntimeData GetQuestData(FGameplayTag QuestID) const;
+
 protected:
     // All quests that the subsystem knows about
     UPROPERTY()
     TArray<UQuestDataAsset*> AllQuests;
 
     UPROPERTY()
-    TMap<FGameplayTag, FQuestRuntimeData> ActiveQuests;
+    TMap<FGameplayTag, FQuestRuntimeData> QuestRuntimeMap;
 
-    UPROPERTY()
-    TSet<FGameplayTag> CompletedQuests;
+    //UPROPERTY()
+    //TMap<FGameplayTag, FQuestRuntimeData> ActiveQuests;
+
+    //UPROPERTY()
+    //TSet<FGameplayTag> CompletedQuests;
 
 private:
     UFUNCTION(BlueprintCallable)
